@@ -17,7 +17,7 @@ int fileFlag = 0;
 void on_child_exit(int sig);
 void execute_command(int is_background_process);
 void cd(char *path);
-void handle_dolar_sign();
+void handle_dollar_sign();
 void parse_input();
 void export();
 void echo();
@@ -26,9 +26,8 @@ int shell_builtin();
 void setup_environment();
 void write_to_log_file();
 
-int main(int argc, char *argv[])
-{
-    // signal termination of the child
+int main(int argc, char *argv[]){
+    //signal termination of the child
     signal(SIGCHLD, on_child_exit);
     setup_environment();
     shell();
@@ -70,14 +69,13 @@ void parse_input()
             command[commands_num - 1][size - 1] = '\0';
         }
     }
-    handle_dolar_sign();
+    handle_dollar_sign();
 }
 void shell()
-{
-    // char *user = getlogin();
-    printf("user@user:~$ ");
+{ 
     while (1)
     {
+        printf("user@user:~$ ");
         parse_input();
         if (strcmp(command[0], "exit") == 0)
             break;
@@ -96,22 +94,34 @@ void shell()
         }
     }
 }
-void handle_dolar_sign()
+void handle_dollar_sign()
 {
-    for (int i = 1; i < commands_num; i++)
-    {
+    for (int i = 0; i < commands_num; i++){
         int found = 0;
-
-        if (command[i][0] == '$')
-        {
-            memmove(command[i], command[i] + 1, strlen(command[i]));
+        int indx =-1;
+        for(int k = 0; k < strlen(command[i]); k++){
+            if (command[i][k] == '$'){
+                indx = k;
+            }
+        }
+        if (indx != -1){
+            char leftString[500];
+            char rightString[500];
+            memset(leftString, '\0', sizeof(leftString));
+            strncpy(leftString, command[i], indx);
+            memset(rightString, '\0', sizeof(rightString));
+            //printf("%ld", strlen(command[i]));
+            strncpy(rightString, command[i] + indx + 1, strlen(command[i])-indx-1);
+            //printf("%s %d",rightString, indx);
             for (int j = 0; j < MAX_BUFFER_SIZE; j++)
             {
                 // replace dolar sign if found
-                if (strcmp(VARIABLES[j], command[i]) == 0)
+                if (strcmp(VARIABLES[j], rightString) == 0)
                 {
-                    strcpy(command[i], VALUES[j]);
+                    strcpy(rightString, VALUES[j]);
                     found = 1;
+                    strcat(leftString, rightString);
+                    strcpy(command[i], leftString);
                     break;
                 }
             }
