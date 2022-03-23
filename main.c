@@ -42,6 +42,7 @@ void cd(char *path);
 void handle_dolar_sign();
 void parse_input()
 {
+    memset(command, '\0', sizeof(command));
     char input[500];
     fgets(input, 500, stdin);
     char *token = strtok(input, " ");
@@ -71,12 +72,12 @@ void parse_input()
     }
     handle_dollar_sign();
 }
-void shell()
-{ 
+void shell(){ 
     while (1)
     {
         printf("user@user:~$ ");
         parse_input();
+        if(strcmp(command[0], "") == 0) continue; 
         if (strcmp(command[0], "exit") == 0)
             break;
         if (shell_builtin())
@@ -94,8 +95,8 @@ void shell()
         }
     }
 }
-void handle_dollar_sign()
-{
+void handle_dollar_sign(){
+
     for (int i = 0; i < commands_num; i++){
         int found = 0;
         int indx =-1;
@@ -125,8 +126,10 @@ void handle_dollar_sign()
                     break;
                 }
             }
-            if (!found)
-                strcpy(command[i], "");
+            if (!found){
+                strcpy(leftString, "");
+                strcpy(command[i], leftString);
+            }
         }
     }
 }
@@ -188,14 +191,11 @@ int shell_builtin()
     return 0;
 }
 
-void on_child_exit(int sig)
-{
+void on_child_exit(int sig){
     int status;
     int pid;
     // reap zombie process
-    while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
-    {
-    }
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0){}
     write_to_log_file();
 }
 void execute_command(int is_background_process)
@@ -246,8 +246,7 @@ void execute_command(int is_background_process)
         }
     }
 }
-void cd(char *path)
-{
+void cd(char *path){
     // home directory
     if (strcmp("~", path) == 0 || strcmp(command[1],"") == 0)
     {
